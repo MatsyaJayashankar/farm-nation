@@ -5,25 +5,31 @@ import {
   setPersistence,
   signInWithEmailAndPassword,
   signOut,
+  updateProfile,
 } from "firebase/auth";
 import { create } from "zustand";
 import { auth } from "../firebase-config";
+import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
+import { toast } from "sonner";
 
 export const useAuthStore = create((set) => ({
   user: null,
   error: null,
   //states - user,error
   //actions - signup,login,logout,initAuth
-  signup: async (email, password) => {
+  signup: async (name, email, password) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
+      await updateProfile(userCredential.user, { displayName: name });
       set({ user: userCredential.user, error: null });
+      toast.success("Signup successful!");
     } catch (error) {
       set({ error: error.message });
+      toast.error(`Signup failed: ${error.message}`);
     }
   },
 
@@ -35,9 +41,13 @@ export const useAuthStore = create((set) => ({
         email,
         password
       );
-      set({ user: userCredential.user, error: null });
+      const user = userCredential.user;
+      set({ user, error: null });
+      toast.success("Logged in successfully!");
+
     } catch (error) {
       set({ error: error.message });
+      toast.error(`Login failed: ${error.message}`);
     }
   },
 
@@ -45,8 +55,10 @@ export const useAuthStore = create((set) => ({
     try {
       await signOut(auth);
       set({ user: null });
+      toast.success("Logged in successfully!");
     } catch (error) {
       set({ error: error.message });
+      toast.error(`Logout failed: ${error.message}`);
     }
   },
 
@@ -54,5 +66,29 @@ export const useAuthStore = create((set) => ({
     onAuthStateChanged(auth, (user) => {
       set({ user });
     });
+  },
+
+  deleteAccount: async (email, password) => {
+    try {
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        set({ error: "No user is currently signed in." });
+        toast.error("No user is currently signed in.");
+        return;
+      }
+
+      // Re-authenticate the user
+      const credential = EmailAuthProvider.credential(email, password);
+      await reauthenticateWithCredential(currentUser, credential);
+
+      // Now delete the account
+      await currentUser.delete();
+      set({ user: null, error: null });
+      toast.success("Account deleted successfully!");
+    } catch (error) {
+      set({ error: error.message });
+      toast.error(`Account deletion failed: ${error.message}`);
+    }
   },
 }));

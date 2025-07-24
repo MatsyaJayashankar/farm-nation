@@ -12,6 +12,8 @@ import { useCartStore } from "./stores/useCartStore";
 import { useAuthStore } from "./stores/useAuthStore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase-config";
+import { Toaster } from "sonner";
+import NavButtons from "./components/NavButtons";
 
 function App() {
   const { fetchCart } = useCartStore();
@@ -19,11 +21,7 @@ function App() {
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      // useCartStore.get().set({ user });
-      if (user) {
-        // Fetch cart when user logs in (initial fetch)
-        fetchCart(user.uid);
-      }
+      if (user) fetchCart(user.uid);
     });
     return () => unsubscribeAuth();
   }, []);
@@ -32,8 +30,10 @@ function App() {
     <>
       <MouseTrail />
       <div className="fixed w-full z-10 top-[50px] left-1/2 transform -translate-x-1/2 scale-50 md:scale-100"></div>
+      <Toaster richColors position="bottom-left" />
       <BrowserRouter>
         <Navbar />
+
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/store" element={<Store />} />

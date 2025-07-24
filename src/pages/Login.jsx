@@ -1,47 +1,68 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuthStore } from "../stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
 
-const Login=()=>{
-    const{signup,login,logout,initAuth,user,error} = useAuthStore();
-    const [email,setEmail] = useState("")
-    const [password,setPassword] = useState("");
+const styles = {
+  form: "grid gap-3",
+  input: "rounded bg-white focus:outline focust:outline-2 text-black",
+  button: "rounded w-auto bg-black text-white",
+  heading: "text-2xl font-bold mb-4",
+  error: "text-red-500 mt-2",
+};
 
-    const navigate = useNavigate();
-    useEffect(()=>{
-        initAuth();
-        if(user){
-            navigate('/store');
-        }
-    },[]);
-    
-    const handleSubmit= async(e)=>{
-        e.preventDefault();
-        try {
-            login(email,password);//Zustand
-            console.log("Login Success");
-            navigate('/store');
-        } catch (error) {
-            console.log(error);
-        }
-    };
+const Login = () => {
+  const { signup, login, logout, initAuth, user, error } = useAuthStore();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-    return(
-        <>
-        <h2>Login</h2>
-        <form onSubmit={handleSubmit} className="grid gap-3"
-        >
-            <input type="email" value={email} className="rounded bg-white text-black" placeholder="Email" required 
-            onChange={(e)=>setEmail(e.target.value)}
-            />
-            <input type="password" value={password} className="rounded bg-white text-black" placeholder="Password" required 
-            onChange={(e)=>setPassword(e.target.value)}
-            />
-            <button className="rounded w-auto bg-black text-white">Login</button>
-        </form>
-        {error? <p>{error}</p>:null}
-        </>
-    )
+  const navigate = useNavigate();
+  const emailRef = useRef(null);
+
+  useEffect(() => {
+    initAuth();
+    emailRef.current?.focus();
+    if (user) {
+      navigate("/store");
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await login(email, password);
+      console.log("Login Success");
+      navigate("/store");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  return (
+    <>
+      <h2 className={styles.heading}>Login</h2>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <input
+          type="email"
+          ref={emailRef}
+          value={email}
+          placeholder="Email"
+          required
+          onChange={(e) => setEmail(e.target.value)}
+          className={styles.input}
+        />
+        <input
+          type="password"
+          value={password}
+          placeholder="Password"
+          required
+          onChange={(e) => setPassword(e.target.value)}
+          className={styles.input}
+        />
+        <button className={styles.button}>Login</button>
+      </form>
+      {error && <p className={styles.error}>{error}</p>}
+    </>
+  );
 };
 
 export default Login;

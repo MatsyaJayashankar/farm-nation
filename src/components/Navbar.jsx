@@ -1,19 +1,29 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 // Navbar.jsx
 import React, { useRef, useState, useEffect } from "react";
 import { useCartStore } from "../stores/useCartStore";
+import { useAuthStore } from "../stores/useAuthStore";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [animateQty, setAnimateQty] = useState(false);
   const menuRef = useRef();
-  const { totalQuantity,fetchCart,clearCart } = useCartStore();
+  const { totalQuantity, fetchCart, clearCart } = useCartStore();
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
+
+  const handleLoginLogout = () => {
+    if (user) {
+      logout();
+      navigate("/");
+    } else navigate("/login");
+  };
 
   useEffect(() => {
     setAnimateQty(true);
     const timeout = setTimeout(() => setAnimateQty(false), 300);
     return () => clearTimeout(timeout);
-  }, [totalQuantity,clearCart]);
+  }, [totalQuantity, clearCart]);
 
   useEffect(() => {
     const closeOnOutsideClick = (e) => {
@@ -21,7 +31,6 @@ const Navbar = () => {
         setIsOpen(false);
       }
     };
-
     document.addEventListener("mousedown", closeOnOutsideClick);
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
   }, []);
@@ -32,8 +41,8 @@ const Navbar = () => {
     { label: "Cart", path: "/cart" },
     // { label: 'About', path: '/about' },
     // { label: 'Contact', path: '/contact' },
-    { label: "Login", path: "/login" },
-    { label: "Signup", path: "/signup" },
+    // { label: "Login", path: "/login" },
+    // { label: "Signup", path: "/signup" },
   ];
 
   const styles = {
@@ -48,29 +57,37 @@ const Navbar = () => {
 
     logo: `text-[clamp(1rem,5vw,2.5rem)] tracking-[0.4em] mx-2`,
 
-    menuButton: `bg-transparent md:hidden absolute top-0 right-0 z-50 text-2xl cursor-pointer pt-2`,
+    menuButton: `bg-transparent md:hidden absolute top-0 right-0 z-50 text-2xl cursor-pointer pt-2 pr-2`,
 
     desktopNav: `hidden p-10 md:flex justify-around items-center gap-3 w-80 relative -top-2 h-10
                  bg-gray-800 opacity-20 text-xs shadow
                  group-hover:translate-y-10 group-hover:opacity-100 group-hover:w-80 group-hover:text-base
                  transition-all duration-350 ease-in-out`,
 
-    mobileMenu: `flex flex-col gap-7 py-15 md:hidden bg-gray-800 text-2xl
+    mobileMenu: `absolute top-0 right-0 w-50 h-auto z-40 will-change-transform
+                 flex flex-col gap-7 py-15 md:hidden bg-gray-800 text-2xl
                  shadow rounded-2xl
-                 transition-transform duration-500 ease-in-out
-                 absolute top-0 right-0 w-50 h-screen z-40 will-change-transform`,
+                 transition-transform duration-500 ease-in-out m-2`,
 
     mobileNavLink: `hover:shadow-[0_0_2px] active:shadow-[0_0_2px]
-                    rounded-lg p-2`,
+                    rounded p-2`,
+    button: `absolute left-0 top-20`,
   };
 
   return (
     <header className={styles.header}>
+      <p>Welcome {user?.displayName}</p>
+
       <Link to="/cart" className={styles.cartBadge} role="button">
         🛒<p className={styles.qty}>{totalQuantity}</p>
       </Link>
       <h3 className={styles.logo}>FARM NATION</h3>
-      <h2 onClick={() => setIsOpen(!isOpen)} className={styles.menuButton}>
+      <h2
+        onClick={() => {
+          setIsOpen((prev) => !prev);
+        }}
+        className={styles.menuButton}
+      >
         {isOpen ? "✖" : "☰"}
       </h2>
 
@@ -87,6 +104,9 @@ const Navbar = () => {
           </NavLink>
         ))}
       </nav>
+      <button className={styles.button} onClick={handleLoginLogout}>
+        {user ? "logout" : "Login"}
+      </button>
 
       {/* mobile */}
       <div

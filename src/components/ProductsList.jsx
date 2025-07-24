@@ -17,6 +17,7 @@ export default function ({ products, onCart }) {
     e.stopPropagation();
     if (!uid) navigate("/login");
     updateCart(uid, item, delta);
+    fetchCart();
   };
 
   return (

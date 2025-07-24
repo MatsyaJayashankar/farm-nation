@@ -5,11 +5,10 @@ import {
   deleteDoc,
   collection,
   writeBatch,
-  onSnapshot,
-  query,
 } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../firebase-config";
+import { toast } from "sonner";
 
 export const useCartStore = create((set, get) => ({
   items: [],
@@ -26,7 +25,9 @@ export const useCartStore = create((set, get) => ({
     }
     const totalQuantity = updatedItems.reduce((sum, i) => sum + i.quantity, 0);
     set({ items: updatedItems, totalQuantity });
-
+    toast.success(
+      `${item.name} ${delta > 0 ? "added to" : "removed from"} cart`
+    );
     // 🔄 Sync with Firebase
     try {
       const docRef = doc(
@@ -45,48 +46,21 @@ export const useCartStore = create((set, get) => ({
       }
     } catch (err) {
       console.error(`❌ Error syncing cart for "${item.id}":`, err);
+      toast.error(`❌ Error syncing cart for "${item.id}"`);
     }
   },
 
-  fetchCart: (uid) => {
-    // If there's an existing subscription, unsubscribe first
-    if (get().unsubscribe) {
-      get().unsubscribe();
-    }
-    const ref = collection(db, "farm-carts", uid, "items");
-    const unsubscribe = onSnapshot(
-      query(ref),
-      (snapshot) => {
-        const items = snapshot.docs.map((doc) => doc.data());
-        const totalQuantity = items.reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        );
-        set({ items, totalQuantity });
-        console.log(
-          `📦 Real-time update: Fetched ${items.length} cart items for user "${uid}".`
-        );
-      },
-      (error) => {
-        console.error("Error fetching real-time cart updates:", error);
-      }
-    );
-    // Store the unsubscribe function
-    set({ unsubscribe });
-  },
-
-  // Add a function to clear the unsubscribe listener when needed (e.g., on logout)
-  clearCartListener: () => {
-    if (get().unsubscribe) {
-      get().unsubscribe();
-      set({ unsubscribe: null });
-    }
+  fetchCart: async (uid) => {
+    if (!uid) return ;
+    const snapshot = await getDocs(collection(db, "farm-carts", uid, "items"));
+    set({ items: snapshot.docs.map((doc) => doc.data()) }); //update local state
   },
 
   clearCart: async (uid) => {
     try {
-      const cartItemsRef = collection(db, "farm-carts", uid, "items");
-      const snapshot = await getDocs(cartItemsRef);
+      const snapshot = await getDocs(
+        collection(db, "farm-carts", uid, "items")
+      );
       const batch = writeBatch(db);
       snapshot.docs.forEach((doc) => {
         batch.delete(doc.ref);
@@ -94,8 +68,10 @@ export const useCartStore = create((set, get) => ({
       await batch.commit();
       set({ items: [] });
       console.log("Cleared Cart");
+      toast.success("Cart cleared");
     } catch (err) {
       console.error(`❌ Error clearing cart for user "${uid}":`, err);
+      toast.error(`❌ Error clearing cart"`);
     }
   },
 }));
