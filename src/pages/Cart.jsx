@@ -16,21 +16,29 @@ export default function Cart() {
     if (uid) {
       fetchCart(uid);
       console.log(uid);
-    } else navigate("/login");
-  }, [uid, navigate]);
+    } else {
+      navigate("/login");
+    }
+  }, [uid, navigate, fetchCart]);
 
-  const handleClearCart = () => {
+  const handleClearCart = async () => {
     if (uid) {
-      clearCart(uid);
-      fetchCart(uid);
+      await clearCart(uid);
+      await fetchCart(uid);
     }
   };
 
   return (
     <>
       <h2>Cart</h2>
-      <button onClick={handleClearCart}>Clear Cart</button>
-      <ProductsList products={items} onCart={true} />
+      <button className="fixed left-0 top-35 z-50" onClick={handleClearCart}>
+        Clear Cart
+      </button>
+      {items.length > 0 ? (
+        <ProductsList products={items} onCart={true} />
+      ) : (
+        <p className="translate-y-50">Your cart is empty</p>
+      )}
     </>
   );
 }

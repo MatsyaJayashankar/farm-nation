@@ -13,8 +13,8 @@ import { useAuthStore } from "./stores/useAuthStore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase-config";
 import { Toaster } from "sonner";
+import ScrollParticles from './components/LonginesParticles'
 import NavButtons from "./components/NavButtons";
-
 function App() {
   const { fetchCart } = useCartStore();
   const { user, setUser } = useAuthStore(); // Get setUser from auth store
@@ -43,6 +43,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        <NavButtons />
       </BrowserRouter>
     </>
   );

@@ -12,13 +12,6 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
-  const handleLoginLogout = () => {
-    if (user) {
-      logout();
-      navigate("/");
-    } else navigate("/login");
-  };
-
   useEffect(() => {
     setAnimateQty(true);
     const timeout = setTimeout(() => setAnimateQty(false), 300);
@@ -34,6 +27,13 @@ const Navbar = () => {
     document.addEventListener("mousedown", closeOnOutsideClick);
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
   }, []);
+
+  const handleLoginLogout = () => {
+    if (user) {
+      logout();
+      navigate("/");
+    } else navigate("/login");
+  };
 
   const navItems = [
     { label: "Home", path: "/" },
@@ -59,7 +59,7 @@ const Navbar = () => {
 
     menuButton: `bg-transparent md:hidden absolute top-0 right-0 z-50 text-2xl cursor-pointer pt-2 pr-2`,
 
-    desktopNav: `hidden p-10 md:flex justify-around items-center gap-3 w-80 relative -top-2 h-10
+    desktopNav: ` p-10 md:flex justify-around items-center gap-3 w-80 relative -top-2 h-10
                  bg-gray-800 opacity-20 text-xs shadow
                  group-hover:translate-y-10 group-hover:opacity-100 group-hover:w-80 group-hover:text-base
                  transition-all duration-350 ease-in-out`,

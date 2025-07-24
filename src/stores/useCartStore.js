@@ -16,12 +16,24 @@ export const useCartStore = create((set, get) => ({
 
   updateCart: async (uid, item, delta = 1) => {
     const state = get();
-    const existingQty =
-      state.items.find((i) => i.id === item.id)?.quantity || 0;
-    const newQty = delta > 0 ? existingQty + delta : null;
-    let updatedItems = state.items.filter((i) => i.id !== item.id);
-    if (newQty > 0) {
-      updatedItems.push({ ...item, quantity: newQty });
+    let newQty = delta;
+    const itemExists = state.items.find((i) => i.id === item.id);
+    let updatedItems;
+
+    if (itemExists) {
+      updatedItems = state.items
+        .map((i) => {
+          if (i.id === item.id) {
+            newQty = i.quantity + delta;
+            return newQty > 0 ? { ...i, quantity: newQty } : null;
+          }
+          return i;
+        })
+        .filter(Boolean); // removes nulls (if item was deleted)
+    } else if (delta > 0) {
+      updatedItems = [...state.items, { ...item, quantity: delta }];
+    } else {
+      updatedItems = [...state.items]; // unchanged if trying to remove nonexistent item
     }
     const totalQuantity = updatedItems.reduce((sum, i) => sum + i.quantity, 0);
     set({ items: updatedItems, totalQuantity });
@@ -29,29 +41,18 @@ export const useCartStore = create((set, get) => ({
       `${item.name} ${delta > 0 ? "added to" : "removed from"} cart`
     );
     // 🔄 Sync with Firebase
-    try {
-      const docRef = doc(
-        db,
-        "farm-carts",
-        String(uid),
-        "items",
-        String(item.id)
-      );
-      if (newQty > 0) {
-        await setDoc(docRef, { ...item, quantity: newQty });
-        console.log(`✅ Updated "${item.id}" to ${newQty} for "${uid}".`);
-      } else {
-        await deleteDoc(docRef);
-        console.log(`🗑️ Removed "${item.id}" for "${uid}".`);
-      }
-    } catch (err) {
-      console.error(`❌ Error syncing cart for "${item.id}":`, err);
-      toast.error(`❌ Error syncing cart for "${item.id}"`);
+    const docRef = doc(db, "farm-carts", String(uid), "items", String(item.id));
+    if (delta !== 0) {
+      await setDoc(docRef, { ...item, quantity: newQty }, { merge: true });
+      console.log(`✅ Updated "${item.id}" to ${newQty} for "${uid}".`);
+    } else if (delta === 0) {
+      await deleteDoc(docRef);
+      console.log(`🗑️ Removed "${item.id}" for "${uid}".`);
     }
   },
 
   fetchCart: async (uid) => {
-    if (!uid) return ;
+    if (!uid) return;
     const snapshot = await getDocs(collection(db, "farm-carts", uid, "items"));
     set({ items: snapshot.docs.map((doc) => doc.data()) }); //update local state
   },
@@ -66,7 +67,7 @@ export const useCartStore = create((set, get) => ({
         batch.delete(doc.ref);
       });
       await batch.commit();
-      set({ items: [] });
+      set({ items: [], totalQuantity: 0 });
       console.log("Cleared Cart");
       toast.success("Cart cleared");
     } catch (err) {
