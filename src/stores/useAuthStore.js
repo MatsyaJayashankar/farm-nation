@@ -15,6 +15,7 @@ import { toast } from "sonner";
 export const useAuthStore = create((set) => ({
   user: null,
   error: null,
+  balance:1400,
   setUser: (user) => set({ user }),
   //states - user,error
   //actions - signup,login,logout,initAuth

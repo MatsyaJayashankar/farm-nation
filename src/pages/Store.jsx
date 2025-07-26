@@ -51,7 +51,7 @@ export default function Store() {
       <form
         ref={ref}
         onSubmit={(e) => e.preventDefault()}
-        className="z-50 sticky top-0 translate-y-5 opacity-70"
+        className="z-50 sticky top-14 translate-y-5 opacity-70"
       >
         <input
           type="text"

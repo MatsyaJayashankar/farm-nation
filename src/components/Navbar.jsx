@@ -11,7 +11,7 @@ import { useCartStore } from "../stores/useCartStore";
 import { useAuthStore } from "../stores/useAuthStore";
 
 const Navbar = () => {
-  const { user, logout } = useAuthStore();
+  const { user, logout, balance } = useAuthStore();
   const [animateQty, setAnimateQty] = useState(false);
   const { totalQuantity } = useCartStore();
   const location = useLocation();
@@ -32,16 +32,16 @@ const Navbar = () => {
              transition-all duration-350 ease-in-out
              ${
                location.pathname === "/store"
-                 ? "hover:bg-white text-black"
-                 : "bg-transparent"
+                 ? "hover:bg-gray-800 text-black hover:text-white"
+                 : "bg-transparent text-white"
              }
               hover:bg-white-800 `,
 
-    cartBadge: `${user ? "inline" : "hidden"} fixed top-7 left-4 z-50 
-                cursor-pointer scale-140 active:scale-210 flex items-center gap-2 `,
+    walletBadge: `${user ? "inline" : "hidden"}  fixed top-7 left-4 z-50 
+                cursor-pointer active:scale-210 flex items-center justify-center gap-2 `,
 
-    qty: `fixed -right-2 -top-4 w-[18px] h-[18px] flex items-center justify-center
-           scale-70 bg-green-600 text-white text-xs font-medium  rounded-full transition-transform duration-300
+    balance: `inline h-[18px] flex justify-center items-center
+           scale-70 bg-green-600 text-white text-xs font-medium  rounded transition-transform duration-300
            ${animateQty ? "animate-ping" : ""}`,
 
     logo: ` text-[clamp(1rem,5vw,2.5rem)] tracking-[0.4em] mx-2 `,
@@ -67,8 +67,8 @@ const Navbar = () => {
 
   return (
     <header className={styles.header}>
-      <Link to="/cart" className={styles.cartBadge} role="button">
-        🛒<p className={styles.qty}>{totalQuantity}</p>
+      <Link to="/cart" className={styles.walletBadge} role="button">
+        💳<p className={styles.balance}>{balance}</p>
       </Link>
       <h3 className={styles.logo}>FARM NATION</h3>
 

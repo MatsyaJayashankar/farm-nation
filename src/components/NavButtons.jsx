@@ -20,7 +20,7 @@ export default function NavButtons() {
     button:
       "w-10 h-10 rounded-full bg-transparent flex items-center justify-center text-white transition-transform duration-300 ease-in-out hover:-translate-y-1",
     icon: "text-white text-[20px]",
-    cartBadge: ` absolute md:relative translate-x-2 -translate-y-7 bg-green-600 text-white text-xs font-medium w-[18px] 
+    cartBadge: ` absolute translate-x-2 -translate-y-7 bg-green-600 text-white text-xs font-medium w-[18px] 
                   h-[18px] flex items-center justify-center rounded-full transition-transform duration-300 
                   ${totalQuantity > 0 ? "inline" : "hidden"}`,
   };
