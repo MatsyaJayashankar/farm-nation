@@ -13,18 +13,19 @@ import { useAuthStore } from "./stores/useAuthStore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebase-config";
 import { Toaster } from "sonner";
-import ScrollParticles from './components/LonginesParticles'
 import NavButtons from "./components/NavButtons";
+import Profile from "./pages/Profile";
 function App() {
-  const { fetchCart } = useCartStore();
+  const { fetchCart,purchase,fetchOrders } = useCartStore();
   const { user, setUser } = useAuthStore(); // Get setUser from auth store
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (user) fetchCart(user.uid);
+      setUser(user);
+      if (user){ fetchCart(user.uid);fetchOrders(user.uid)};
     });
     return () => unsubscribeAuth();
-  }, []);
+  }, [setUser, fetchCart,purchase]);
 
   return (
     <>
@@ -36,11 +37,15 @@ function App() {
 
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/store" element={<Store />} />
-          <Route path="/cart" element={<Cart />} />
-
+          <Route
+            path="/cart"
+            element={user ? <Cart /> : <Navigate to="/login" />}
+          />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         <NavButtons />

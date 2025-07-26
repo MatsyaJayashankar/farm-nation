@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuthStore } from "../stores/useAuthStore";
-import { useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 const styles = {
   form: "grid gap-3",
@@ -8,10 +8,11 @@ const styles = {
   button: "rounded w-auto bg-black text-white",
   heading: "text-2xl font-bold mb-4",
   error: "text-red-500 mt-2",
+  text: "text-green-500 mt-2",
 };
 
 const Login = () => {
-  const { signup, login, logout, initAuth, user, error } = useAuthStore();
+  const { login, logout, initAuth, user, error } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -38,7 +39,7 @@ const Login = () => {
   };
 
   return (
-    <>
+    <div className="translate-y-1/2">
       <h2 className={styles.heading}>Login</h2>
       <form onSubmit={handleSubmit} className={styles.form}>
         <input
@@ -61,7 +62,10 @@ const Login = () => {
         <button className={styles.button}>Login</button>
       </form>
       {error && <p className={styles.error}>{error}</p>}
-    </>
+      <Link to="/signup">
+        <p className={styles.text}>New user? Signup</p>
+      </Link>
+    </div>
   );
 };
 

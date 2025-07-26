@@ -1,65 +1,54 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  NavLink,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 // Navbar.jsx
 import React, { useRef, useState, useEffect } from "react";
 import { useCartStore } from "../stores/useCartStore";
 import { useAuthStore } from "../stores/useAuthStore";
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [animateQty, setAnimateQty] = useState(false);
-  const menuRef = useRef();
-  const { totalQuantity, fetchCart, clearCart } = useCartStore();
-  const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-
+  const [animateQty, setAnimateQty] = useState(false);
+  const { totalQuantity } = useCartStore();
+  const location = useLocation();
   useEffect(() => {
     setAnimateQty(true);
-    const timeout = setTimeout(() => setAnimateQty(false), 300);
+    const timeout = setTimeout(() => setAnimateQty(false), 1500);
     return () => clearTimeout(timeout);
-  }, [totalQuantity, clearCart]);
-
-  useEffect(() => {
-    const closeOnOutsideClick = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", closeOnOutsideClick);
-    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
-  }, []);
-
-  const handleLoginLogout = () => {
-    if (user) {
-      logout();
-      navigate("/");
-    } else navigate("/login");
-  };
+  }, [totalQuantity]);
 
   const navItems = [
     { label: "Home", path: "/" },
     { label: "Store", path: "/store" },
     { label: "Cart", path: "/cart" },
-    // { label: 'About', path: '/about' },
-    // { label: 'Contact', path: '/contact' },
-    // { label: "Login", path: "/login" },
-    // { label: "Signup", path: "/signup" },
   ];
 
   const styles = {
-    header: `group fixed grid place-items-center top-0 left-0 w-full z-50 text-white p-4
-             transition-all duration-350 ease-in-out`,
+    header: `h-[clamp(50px,14vh,200px)] group  fixed grid place-items-center top-0 left-0 w-full z-50 p-4
+             transition-all duration-350 ease-in-out
+             ${
+               location.pathname === "/store"
+                 ? "hover:bg-white text-black"
+                 : "bg-transparent"
+             }
+              hover:bg-white-800 `,
 
-    cartBadge: `fixed top-7 left-4  z-50 scale-140  scale-200 cursor-pointer active:scale-210`,
-    qty: `fixed -right-2 -top-4 bg-cyan-950 shadow rounded-full w-5 h-5 scale-70
-          ${
-            animateQty ? "animate-bounce shadow-[0_0_7px_cyan] scale-100" : ""
-          }transition-all duration-1000`,
+    cartBadge: `${user ? "inline" : "hidden"} fixed top-7 left-4 z-50 
+                cursor-pointer scale-140 active:scale-210 flex items-center gap-2 `,
 
-    logo: `text-[clamp(1rem,5vw,2.5rem)] tracking-[0.4em] mx-2`,
+    qty: `fixed -right-2 -top-4 w-[18px] h-[18px] flex items-center justify-center
+           scale-70 bg-green-600 text-white text-xs font-medium  rounded-full transition-transform duration-300
+           ${animateQty ? "animate-ping" : ""}`,
+
+    logo: ` text-[clamp(1rem,5vw,2.5rem)] tracking-[0.4em] mx-2 `,
 
     menuButton: `bg-transparent md:hidden absolute top-0 right-0 z-50 text-2xl cursor-pointer pt-2 pr-2`,
 
-    desktopNav: ` p-10 md:flex justify-around items-center gap-3 w-80 relative -top-2 h-10
+    desktopNav: `hidden p-10 md:flex justify-around items-center gap-3 w-80 relative -top-2 h-10
                  bg-gray-800 opacity-20 text-xs shadow
                  group-hover:translate-y-10 group-hover:opacity-100 group-hover:w-80 group-hover:text-base
                  transition-all duration-350 ease-in-out`,
@@ -71,25 +60,27 @@ const Navbar = () => {
 
     mobileNavLink: `hover:shadow-[0_0_2px] active:shadow-[0_0_2px]
                     rounded p-2`,
+
     button: `absolute left-0 top-20`,
+    loginBtn: ` fixed right-2 top-3 z-50  text-white`,
   };
 
   return (
     <header className={styles.header}>
-      <p>Welcome {user?.displayName}</p>
-
       <Link to="/cart" className={styles.cartBadge} role="button">
         🛒<p className={styles.qty}>{totalQuantity}</p>
       </Link>
       <h3 className={styles.logo}>FARM NATION</h3>
-      <h2
+
+      <Link
+        to={`${user ? "/" : "/login"}`}
+        className={styles.login}
         onClick={() => {
-          setIsOpen((prev) => !prev);
+          if (user) logout();
         }}
-        className={styles.menuButton}
       >
-        {isOpen ? "✖" : "☰"}
-      </h2>
+        <p className={styles.loginBtn}>{user ? "Logout" : "Login"}</p>
+      </Link>
 
       <nav className={styles.desktopNav}>
         {navItems.map(({ label, path }) => (
@@ -104,31 +95,6 @@ const Navbar = () => {
           </NavLink>
         ))}
       </nav>
-      <button className={styles.button} onClick={handleLoginLogout}>
-        {user ? "logout" : "Login"}
-      </button>
-
-      {/* mobile */}
-      <div
-        ref={menuRef}
-        className={`${styles.mobileMenu} ${
-          isOpen ? "translate-x-0" : "translate-x-100"
-        }`}
-      >
-        {navItems.map(({ label, path }) => (
-          <NavLink
-            key={label}
-            to={path}
-            style={({ isActive }) =>
-              isActive ? { color: "white" } : { color: "yellowgreen" }
-            }
-            className={styles.mobileNavLink}
-            onClick={() => setIsOpen(false)}
-          >
-            {label}
-          </NavLink>
-        ))}
-      </div>
     </header>
   );
 };
